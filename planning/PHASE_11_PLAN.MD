@@ -13,9 +13,6 @@
 
 **Objective:** Allow customers to generate and manage API keys for third-party integrations.
 
-**Duration:** 2-3 days  
-**Team Size:** 1 developer
-
 **Tasks:**
 
 1. **Create API key schemas in `apps/api/src/routes/customer/schemas.ts`:**
