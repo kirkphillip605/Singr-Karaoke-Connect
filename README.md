@@ -78,7 +78,7 @@ cp .env.example .env
 ### 4. Start local services
 
 ```bash
-docker-compose up -d
+docker compose up -d
 ```
 
 ### 5. Run database migrations
