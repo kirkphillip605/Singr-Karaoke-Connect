@@ -80,7 +80,7 @@ export class OrganizationService {
     // Check if user already exists in organization
     const existing = await prisma.organizationUser.findUnique({
       where: {
-        ux_organization_users_customer_user: {
+        customerProfileId_userId: {
           customerProfileId,
           userId: input.email, // We'll use email for lookup initially
         },

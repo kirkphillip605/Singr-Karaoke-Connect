@@ -1,13 +1,13 @@
 import { FastifyInstance, FastifyRequest } from 'fastify';
 import { logger } from '@singr/observability';
-import { getWebSocketService } from '../services/websocket.service';
+import { getWebSocketService } from '../services/websocket.service.js';
 import { verifyToken } from '@singr/auth';
 
 /**
  * WebSocket routes for real-time updates
  * Clients connect to /ws?venueId=xxx&token=jwt
  */
-export async function websocketRoutes(server: FastifyInstance) {
+export default async function websocketRoutes(server: FastifyInstance) {
   server.get(
     '/ws',
     { websocket: true },
@@ -116,7 +116,7 @@ export async function websocketRoutes(server: FastifyInstance) {
         description: 'Get WebSocket connection statistics',
       },
     },
-    async (request, reply) => {
+    async (_request, reply) => {
       const wsService = getWebSocketService();
       
       if (!wsService) {

@@ -1,7 +1,7 @@
 import { prisma } from '@singr/database';
-import { createLogger } from '@singr/observability';
-
-const logger = createLogger('service:analytics');
+// Logger available for future use if needed
+// import { createLogger } from '@singr/observability';
+// const logger = createLogger('service:analytics');
 
 export interface DateRange {
   startDate: Date;
@@ -282,6 +282,7 @@ export class AnalyticsService {
 
     for (const request of requests) {
       const dateKey = request.requestedAt.toISOString().split('T')[0];
+      if (!dateKey) continue;
       const existing = trendMap.get(dateKey) || { requests: 0, processed: 0 };
 
       existing.requests++;

@@ -35,7 +35,7 @@ export class StripeService {
     });
 
     if (!customerProfile) {
-      throw new AppError('Customer profile not found', 404, 'NOT_FOUND');
+      throw new AppError(404, 'not_found', 'Not Found', 'Customer profile not found');
     }
 
     // Check if customer already exists
@@ -57,7 +57,7 @@ export class StripeService {
     // Create new Stripe customer
     const customer = await this.stripe.customers.create({
       email: customerProfile.user.email,
-      name: customerProfile.legalBusinessName || customerProfile.user.name,
+      name: customerProfile.legalBusinessName || customerProfile.user.name || undefined,
       phone: customerProfile.user.phoneNumber || undefined,
       metadata: {
         customerProfileId,
@@ -73,7 +73,7 @@ export class StripeService {
 
     // Create or update customer record
     await prisma.customer.upsert({
-      where: { stripeCustomerId: customer.id },
+      where: { id: crypto.randomUUID() },
       create: {
         id: crypto.randomUUID(),
         stripeCustomerId: customer.id,
@@ -232,7 +232,11 @@ export class StripeService {
       throw new Error('Customer not expanded');
     }
 
-    const customerProfileId = customer.metadata?.customerProfileId;
+    if ('deleted' in customer && customer.deleted) {
+      throw new Error('Customer has been deleted');
+    }
+
+    const customerProfileId = (customer as any).metadata?.customerProfileId;
     if (!customerProfileId) {
       throw new Error('Customer profile ID not found in metadata');
     }
@@ -302,7 +306,7 @@ export class StripeService {
       );
     } catch (err: any) {
       logger.error('Webhook signature verification failed', { error: err.message });
-      throw new AppError('Invalid webhook signature', 400, 'INVALID_SIGNATURE');
+      throw new AppError(400, 'invalid_signature', 'Bad Request', 'Invalid webhook signature');
     }
 
     logger.info('Processing Stripe webhook', {

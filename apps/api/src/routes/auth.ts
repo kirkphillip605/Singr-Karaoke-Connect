@@ -1,5 +1,5 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
-import { v4 as uuidv4 } from 'uuid';
+import { randomUUID as uuidv4 } from 'crypto';
 
 import { prisma } from '@singr/database';
 import {
@@ -123,7 +123,7 @@ export default async function authRoutes(server: FastifyInstance) {
       }
 
       // Create verification token
-      const verificationToken = uuidv4();
+      const verificationToken = randomUUID();
       await prisma.verificationToken.create({
         data: {
           identifier: user.email,
@@ -243,7 +243,7 @@ export default async function authRoutes(server: FastifyInstance) {
       preHandler: server.authenticate,
     },
     async (request, reply) => {
-      const user = request.user!;
+      const user = request.user as any;
 
       // Revoke current token
       const refreshTokenService = new RefreshTokenService(server.redis);
@@ -281,7 +281,7 @@ export default async function authRoutes(server: FastifyInstance) {
       }
 
       // Create reset token
-      const resetToken = uuidv4();
+      const resetToken = randomUUID();
       await prisma.verificationToken.create({
         data: {
           identifier: `reset:${user.email}`,

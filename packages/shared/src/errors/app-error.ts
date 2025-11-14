@@ -24,7 +24,9 @@ export class AppError extends Error {
     this.detail = detail;
     this.errors = errors;
     this.instance = instance;
-    Error.captureStackTrace(this, this.constructor);
+    if (typeof (Error as any).captureStackTrace === 'function') {
+      (Error as any).captureStackTrace(this, this.constructor);
+    }
   }
 
   toJSON() {

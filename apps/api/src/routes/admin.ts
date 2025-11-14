@@ -16,7 +16,7 @@ export default async function adminRoutes(server: FastifyInstance) {
   const requireSuperAdmin = async (request: any, reply: any) => {
     await server.authenticate(request, reply);
 
-    const userId = request.user.sub;
+    const userId = ((request.user as any)?.sub);
 
     // Check if user has super_admin role
     const userRole = await prisma.userRole.findFirst({
@@ -137,7 +137,7 @@ export default async function adminRoutes(server: FastifyInstance) {
 
       return reply.send({
         users,
-        pagination: createPaginationInfo(total, limit, offset, users.length),
+        pagination: createPaginationInfo(total, limit || 10, offset || 0, users.length),
       });
     }
   );
@@ -248,7 +248,7 @@ export default async function adminRoutes(server: FastifyInstance) {
 
       return reply.send({
         venues,
-        pagination: createPaginationInfo(total, limit, offset, venues.length),
+        pagination: createPaginationInfo(total, limit || 10, offset || 0, venues.length),
       });
     }
   );
@@ -283,7 +283,7 @@ export default async function adminRoutes(server: FastifyInstance) {
 
       return reply.send({
         logs,
-        pagination: createPaginationInfo(total, limit, offset, logs.length),
+        pagination: createPaginationInfo(total, limit || 10, offset || 0, logs.length),
       });
     }
   );

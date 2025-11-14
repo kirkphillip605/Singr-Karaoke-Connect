@@ -1,4 +1,5 @@
-import Fastify, { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
+import Fastify, { FastifyInstance } from 'fastify';
+import type { FastifyRequest, FastifyReply } from 'fastify';
 import cors from '@fastify/cors';
 import helmet from '@fastify/helmet';
 import jwt from '@fastify/jwt';
@@ -11,30 +12,22 @@ import Redis from 'ioredis';
 import { config } from '@singr/config';
 import { logger, initSentry, Sentry } from '@singr/observability';
 import { prisma } from '@singr/database';
-import { RefreshTokenService, verifyToken } from '@singr/auth';
+import { RefreshTokenService } from '@singr/auth';
 import { AppError } from '@singr/shared';
-import { initWebSocketService } from './services/websocket.service';
+import { initWebSocketService } from './services/websocket.service.js';
 
 // Extend Fastify types
 declare module 'fastify' {
   interface FastifyInstance {
     authenticate: (request: FastifyRequest, reply: FastifyReply) => Promise<void>;
-  }
-  interface FastifyRequest {
-    user?: {
-      sub: string;
-      email: string;
-      jti: string;
-      accountType?: 'singer' | 'customer';
-      profileId?: string;
-    };
-    rawBody?: string | Buffer;
+    redis: any;
+    prisma: any;
   }
 }
 
 export async function buildServer(): Promise<FastifyInstance> {
   const server = Fastify({
-    logger,
+    logger: logger as any,
     requestIdLogLabel: 'correlationId',
     disableRequestLogging: false,
     trustProxy: true,
@@ -58,9 +51,10 @@ export async function buildServer(): Promise<FastifyInstance> {
     }
 
     // Log error with Sentry
+    const user = request.user as any;
     Sentry.captureException(error, {
-      user: request.user
-        ? { id: request.user.sub, email: request.user.email }
+      user: user
+        ? { id: user.sub, email: user.email }
         : undefined,
       extra: {
         correlationId: request.id,
@@ -120,6 +114,7 @@ export async function buildServer(): Promise<FastifyInstance> {
   });
 
   // Register JWT
+  // @ts-expect-error - JWT plugin types have minor incompatibilities with Fastify 5
   await server.register(jwt, {
     secret: {
       private: config.JWT_PRIVATE_KEY,
@@ -146,6 +141,7 @@ export async function buildServer(): Promise<FastifyInstance> {
   });
 
   // Register rate limiting
+  // @ts-expect-error - Redis constructor type compatibility
   const redis = new Redis(config.REDIS_URL);
   await server.register(rateLimit, {
     global: true,
@@ -154,7 +150,8 @@ export async function buildServer(): Promise<FastifyInstance> {
     redis,
     skipOnError: true,
     keyGenerator: (request) => {
-      return request.user?.sub || request.ip;
+      const user = request.user as any;
+      return user?.sub || request.ip;
     },
     errorResponseBuilder: (_request, context) => {
       return {
@@ -206,11 +203,10 @@ export async function buildServer(): Promise<FastifyInstance> {
     try {
       await request.jwtVerify();
 
+      const user = request.user as any;
       // Check if token is revoked
       const refreshTokenService = new RefreshTokenService(redis);
-      const isRevoked = await refreshTokenService.isJTIRevoked(
-        request.user!.jti
-      );
+      const isRevoked = await refreshTokenService.isJTIRevoked(user.jti);
 
       if (isRevoked) {
         return reply.code(401).send({
@@ -221,27 +217,31 @@ export async function buildServer(): Promise<FastifyInstance> {
       }
 
       // Fetch user account type and profile
-      const user = await prisma.user.findUnique({
-        where: { id: request.user!.sub },
+      const dbUser = await prisma.user.findUnique({
+        where: { id: user.sub },
         include: {
-          accounts: {
-            where: { isPrimary: true },
-            take: 1,
-          },
+          customerProfile: true,
+          singerProfile: true,
         },
       });
 
-      if (user && user.accounts[0]) {
-        const account = user.accounts[0];
-        request.user!.accountType = account.accountType as 'singer' | 'customer';
-        request.user!.profileId = account.profileId || undefined;
+      if (dbUser) {
+        if (dbUser.customerProfile) {
+          user.accountType = 'customer';
+          user.profileId = dbUser.customerProfile.id;
+        } else if (dbUser.singerProfile) {
+          user.accountType = 'singer';
+          user.profileId = dbUser.singerProfile.id;
+        }
       }
 
       // Set user in Sentry context
       Sentry.setUser({
-        id: request.user!.sub,
-        email: request.user!.email,
+        id: user.sub,
+        email: user.email,
       });
+      
+      return Promise.resolve();
     } catch (err) {
       return reply.code(401).send({
         type: 'authentication_failed',

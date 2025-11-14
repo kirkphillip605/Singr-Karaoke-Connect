@@ -1,6 +1,6 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { z } from 'zod';
-import { stripeService } from '../services/stripe.service';
+import { stripeService } from '../services/stripe.service.js';
 import { AppError } from '@singr/shared';
 import { logger } from '@singr/observability';
 
@@ -16,7 +16,7 @@ const createPortalSchema = z.object({
   returnUrl: z.string().url(),
 });
 
-export async function billingRoutes(server: FastifyInstance) {
+export default async function billingRoutes(server: FastifyInstance) {
   // Create checkout session
   server.post(
     '/billing/checkout',
@@ -46,15 +46,15 @@ export async function billingRoutes(server: FastifyInstance) {
       const body = createCheckoutSchema.parse(request.body);
 
       if (request.user?.accountType !== 'customer') {
-        throw new AppError('Only customers can subscribe', 403, 'FORBIDDEN');
+        throw new AppError(400, "bad_request", "Bad Request", 'Only customers can subscribe', 403, 'FORBIDDEN');
       }
 
-      if (!request.user.profileId) {
-        throw new AppError('Customer profile not found', 404, 'NOT_FOUND');
+      if (!(request.user as any).profileId) {
+        throw new AppError(400, "bad_request", "Bad Request", 'Customer profile not found', 404, 'NOT_FOUND');
       }
 
       const session = await stripeService.createCheckoutSession(
-        request.user.profileId,
+        (request.user as any).profileId,
         body.priceId,
         {
           successUrl: body.successUrl,
@@ -96,15 +96,15 @@ export async function billingRoutes(server: FastifyInstance) {
       const body = createPortalSchema.parse(request.body);
 
       if (request.user?.accountType !== 'customer') {
-        throw new AppError('Only customers can access billing portal', 403, 'FORBIDDEN');
+        throw new AppError(400, "bad_request", "Bad Request", 'Only customers can access billing portal', 403, 'FORBIDDEN');
       }
 
-      if (!request.user.profileId) {
-        throw new AppError('Customer profile not found', 404, 'NOT_FOUND');
+      if (!(request.user as any).profileId) {
+        throw new AppError(400, "bad_request", "Bad Request", 'Customer profile not found', 404, 'NOT_FOUND');
       }
 
       const session = await stripeService.createPortalSession(
-        request.user.profileId,
+        (request.user as any).profileId,
         body.returnUrl
       );
 
@@ -126,15 +126,15 @@ export async function billingRoutes(server: FastifyInstance) {
     },
     async (request: FastifyRequest, reply: FastifyReply) => {
       if (request.user?.accountType !== 'customer') {
-        throw new AppError('Only customers have subscriptions', 403, 'FORBIDDEN');
+        throw new AppError(400, "bad_request", "Bad Request", 'Only customers have subscriptions', 403, 'FORBIDDEN');
       }
 
-      if (!request.user.profileId) {
-        throw new AppError('Customer profile not found', 404, 'NOT_FOUND');
+      if (!(request.user as any).profileId) {
+        throw new AppError(400, "bad_request", "Bad Request", 'Customer profile not found', 404, 'NOT_FOUND');
       }
 
       const subscription = await stripeService.getActiveSubscription(
-        request.user.profileId
+        (request.user as any).profileId
       );
 
       if (!subscription) {
@@ -189,7 +189,7 @@ export async function billingRoutes(server: FastifyInstance) {
       const signature = request.headers['stripe-signature'];
 
       if (!signature || typeof signature !== 'string') {
-        throw new AppError('Missing stripe-signature header', 400, 'BAD_REQUEST');
+        throw new AppError(400, "bad_request", "Bad Request", 'Missing stripe-signature header', 400, 'BAD_REQUEST');
       }
 
       try {

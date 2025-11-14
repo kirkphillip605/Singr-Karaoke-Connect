@@ -1,4 +1,4 @@
-import { envsafe, str, port, url, bool, num } from 'envsafe';
+import { envsafe, str, port, url, bool } from 'envsafe';
 
 export const config = envsafe({
   // Environment

@@ -20,7 +20,7 @@ export default async function singerRoutes(server: FastifyInstance) {
       preHandler: server.authenticate,
     },
     async (request, reply) => {
-      const userId = request.user!.sub;
+      const userId = (request.user as any).sub;
 
       const profile = await prisma.singerProfile.findUnique({
         where: { userId },
@@ -49,7 +49,7 @@ export default async function singerRoutes(server: FastifyInstance) {
       preHandler: server.authenticate,
     },
     async (request, reply) => {
-      const userId = request.user!.sub;
+      const userId = (request.user as any).sub;
       const body = request.body as Record<string, unknown>;
 
       const profile = await prisma.singerProfile.update({
@@ -57,7 +57,7 @@ export default async function singerRoutes(server: FastifyInstance) {
         data: {
           nickname: body.nickname as string | undefined,
           avatarUrl: body.avatarUrl as string | undefined,
-          preferences: body.preferences as Record<string, unknown> | undefined,
+          preferences: body.preferences as any,
         },
         select: {
           id: true,
@@ -79,7 +79,7 @@ export default async function singerRoutes(server: FastifyInstance) {
       preHandler: server.authenticate,
     },
     async (request, reply) => {
-      const userId = request.user!.sub;
+      const userId = (request.user as any).sub;
       const { limit, offset } = parsePaginationParams(
         request.query as Record<string, unknown>
       );
@@ -113,7 +113,7 @@ export default async function singerRoutes(server: FastifyInstance) {
 
       return reply.send({
         songs: favorites,
-        pagination: createPaginationInfo(total, limit, offset, favorites.length),
+        pagination: createPaginationInfo(total, limit || 10, offset || 0, favorites.length),
       });
     }
   );
@@ -125,7 +125,7 @@ export default async function singerRoutes(server: FastifyInstance) {
       preHandler: server.authenticate,
     },
     async (request, reply) => {
-      const userId = request.user!.sub;
+      const userId = (request.user as any).sub;
       const body = request.body as Record<string, unknown>;
 
       const profile = await prisma.singerProfile.findUnique({
@@ -170,7 +170,7 @@ export default async function singerRoutes(server: FastifyInstance) {
       preHandler: server.authenticate,
     },
     async (request, reply) => {
-      const userId = request.user!.sub;
+      const userId = (request.user as any).sub;
       const { songId } = request.params;
 
       const profile = await prisma.singerProfile.findUnique({
@@ -199,7 +199,7 @@ export default async function singerRoutes(server: FastifyInstance) {
       preHandler: server.authenticate,
     },
     async (request, reply) => {
-      const userId = request.user!.sub;
+      const userId = (request.user as any).sub;
 
       const profile = await prisma.singerProfile.findUnique({
         where: { userId },
@@ -239,7 +239,7 @@ export default async function singerRoutes(server: FastifyInstance) {
       preHandler: server.authenticate,
     },
     async (request, reply) => {
-      const userId = request.user!.sub;
+      const userId = (request.user as any).sub;
       const body = request.body as Record<string, unknown>;
       const venueId = body.venueId as string;
 
@@ -292,7 +292,7 @@ export default async function singerRoutes(server: FastifyInstance) {
       preHandler: server.authenticate,
     },
     async (request, reply) => {
-      const userId = request.user!.sub;
+      const userId = (request.user as any).sub;
       const { venueId } = request.params;
 
       const profile = await prisma.singerProfile.findUnique({
@@ -323,7 +323,7 @@ export default async function singerRoutes(server: FastifyInstance) {
       preHandler: server.authenticate,
     },
     async (request, reply) => {
-      const userId = request.user!.sub;
+      const userId = (request.user as any).sub;
       const { limit, offset } = parsePaginationParams(
         request.query as Record<string, unknown>
       );
@@ -346,7 +346,7 @@ export default async function singerRoutes(server: FastifyInstance) {
 
       return reply.send({
         history,
-        pagination: createPaginationInfo(total, limit, offset, history.length),
+        pagination: createPaginationInfo(total, limit || 10, offset || 0, history.length),
       });
     }
   );
@@ -364,7 +364,7 @@ export default async function singerRoutes(server: FastifyInstance) {
       },
     },
     async (request, reply) => {
-      const userId = request.user!.sub;
+      const userId = (request.user as any).sub;
       const { venueUrlName } = request.params;
       const { artist, title, keyChange, notes } = request.body;
 

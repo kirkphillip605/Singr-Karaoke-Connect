@@ -38,11 +38,11 @@ export async function getUserPermissions(
       return { roles: [], permissions: [] };
     }
 
-    const roles = user.userRoles.map((ur) => ur.role.slug);
+    const roles = user.userRoles.map((ur: { role: { slug: string } }) => ur.role.slug);
     const permissions = new Set<string>();
 
-    user.userRoles.forEach((ur) => {
-      ur.role.rolePermissions.forEach((rp) => {
+    user.userRoles.forEach((ur: { role: { rolePermissions: Array<{ permission: { slug: string } }> } }) => {
+      ur.role.rolePermissions.forEach((rp: { permission: { slug: string } }) => {
         permissions.add(rp.permission.slug);
       });
     });
@@ -108,7 +108,7 @@ export async function getOrganizationPermissions(
   try {
     const orgUser = await prisma.organizationUser.findUnique({
       where: {
-        ux_organization_users_customer_user: {
+        customerProfileId_userId: {
           customerProfileId,
           userId,
         },
@@ -135,18 +135,18 @@ export async function getOrganizationPermissions(
       return { roles: [], permissions: [] };
     }
 
-    const roles = orgUser.role ? [orgUser.role.slug] : [];
+    const roles = orgUser.role ? [(orgUser.role as any).slug] : [];
     const permissions = new Set<string>();
 
     // Add role permissions
     if (orgUser.role) {
-      orgUser.role.rolePermissions.forEach((rp) => {
+      ((orgUser.role as any).rolePermissions || []).forEach((rp: { permission: { slug: string } }) => {
         permissions.add(rp.permission.slug);
       });
     }
 
     // Add override permissions
-    orgUser.permissions.forEach((up) => {
+    ((orgUser as any).permissions || []).forEach((up: { permission: { slug: string } }) => {
       permissions.add(up.permission.slug);
     });
 

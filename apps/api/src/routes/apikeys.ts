@@ -19,7 +19,7 @@ export default async function apikeysRoutes(server: FastifyInstance) {
       preHandler: server.authenticate,
     },
     async (request, reply) => {
-      const userId = request.user!.sub;
+      const userId = (request.user as any).sub;
       const { limit, offset } = parsePaginationParams(
         request.query as Record<string, unknown>
       );
@@ -49,7 +49,7 @@ export default async function apikeysRoutes(server: FastifyInstance) {
 
       return reply.send({
         apiKeys,
-        pagination: createPaginationInfo(total, limit, offset, apiKeys.length),
+        pagination: createPaginationInfo(total, limit || 10, offset || 0, apiKeys.length),
       });
     }
   );
@@ -61,7 +61,7 @@ export default async function apikeysRoutes(server: FastifyInstance) {
       preHandler: server.authenticate,
     },
     async (request, reply) => {
-      const userId = request.user!.sub;
+      const userId = (request.user as any).sub;
       const { keyId } = request.params;
 
       const customerProfile = await prisma.customerProfile.findUnique({
@@ -88,7 +88,7 @@ export default async function apikeysRoutes(server: FastifyInstance) {
       },
     },
     async (request, reply) => {
-      const userId = request.user!.sub;
+      const userId = (request.user as any).sub;
 
       const customerProfile = await prisma.customerProfile.findUnique({
         where: { userId },
@@ -119,7 +119,7 @@ export default async function apikeysRoutes(server: FastifyInstance) {
       preHandler: server.authenticate,
     },
     async (request, reply) => {
-      const userId = request.user!.sub;
+      const userId = (request.user as any).sub;
       const { keyId } = request.params;
 
       const customerProfile = await prisma.customerProfile.findUnique({

@@ -27,7 +27,7 @@ export default async function organizationRoutes(server: FastifyInstance) {
       preHandler: server.authenticate,
     },
     async (request, reply) => {
-      const userId = request.user!.sub;
+      const userId = (request.user as any).sub;
       const { limit, offset } = parsePaginationParams(
         request.query as Record<string, unknown>
       );
@@ -63,7 +63,7 @@ export default async function organizationRoutes(server: FastifyInstance) {
       },
     },
     async (request, reply) => {
-      const userId = request.user!.sub;
+      const userId = (request.user as any).sub;
       const body = request.body as z.infer<typeof inviteUserSchema>;
 
       const customerProfile = await prisma.customerProfile.findUnique({
@@ -91,7 +91,7 @@ export default async function organizationRoutes(server: FastifyInstance) {
       preHandler: server.authenticate,
     },
     async (request, reply) => {
-      const userId = request.user!.sub;
+      const userId = (request.user as any).sub;
       const { token } = request.body;
 
       if (!token) {
@@ -121,7 +121,7 @@ export default async function organizationRoutes(server: FastifyInstance) {
       },
     },
     async (request, reply) => {
-      const userId = request.user!.sub;
+      const userId = (request.user as any).sub;
       const { organizationUserId } = request.params;
 
       const customerProfile = await prisma.customerProfile.findUnique({
@@ -135,7 +135,7 @@ export default async function organizationRoutes(server: FastifyInstance) {
       const updated = await organizationService.updateUserRole(
         customerProfile.id,
         organizationUserId,
-        request.body
+        request.body as any
       );
 
       return reply.send(updated);
@@ -149,7 +149,7 @@ export default async function organizationRoutes(server: FastifyInstance) {
       preHandler: server.authenticate,
     },
     async (request, reply) => {
-      const userId = request.user!.sub;
+      const userId = (request.user as any).sub;
       const { organizationUserId } = request.params;
 
       const customerProfile = await prisma.customerProfile.findUnique({
@@ -176,7 +176,7 @@ export default async function organizationRoutes(server: FastifyInstance) {
       preHandler: server.authenticate,
     },
     async (request, reply) => {
-      const userId = request.user!.sub;
+      const userId = (request.user as any).sub;
       const query = request.query as Record<string, unknown>;
       const customerProfileId = query.customerProfileId as string | undefined;
 

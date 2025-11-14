@@ -21,7 +21,7 @@ export default async function systemsRoutes(server: FastifyInstance) {
       preHandler: server.authenticate,
     },
     async (request, reply) => {
-      const userId = request.user!.sub;
+      const userId = (request.user as any).sub;
       const { limit, offset } = parsePaginationParams(
         request.query as Record<string, unknown>
       );
@@ -46,7 +46,7 @@ export default async function systemsRoutes(server: FastifyInstance) {
 
       return reply.send({
         systems,
-        pagination: createPaginationInfo(total, limit, offset, systems.length),
+        pagination: createPaginationInfo(total, limit || 10, offset || 0, systems.length),
       });
     }
   );
@@ -61,7 +61,7 @@ export default async function systemsRoutes(server: FastifyInstance) {
       },
     },
     async (request, reply) => {
-      const userId = request.user!.sub;
+      const userId = (request.user as any).sub;
 
       const customerProfile = await prisma.customerProfile.findUnique({
         where: { userId },
@@ -73,7 +73,7 @@ export default async function systemsRoutes(server: FastifyInstance) {
 
       const system = await systemService.createSystem(
         customerProfile.id,
-        request.body
+        request.body as any
       );
 
       return reply.code(201).send(system);
@@ -87,7 +87,7 @@ export default async function systemsRoutes(server: FastifyInstance) {
       preHandler: server.authenticate,
     },
     async (request, reply) => {
-      const userId = request.user!.sub;
+      const userId = (request.user as any).sub;
       const { systemId } = request.params;
 
       const customerProfile = await prisma.customerProfile.findUnique({
@@ -117,7 +117,7 @@ export default async function systemsRoutes(server: FastifyInstance) {
       },
     },
     async (request, reply) => {
-      const userId = request.user!.sub;
+      const userId = (request.user as any).sub;
       const { systemId } = request.params;
 
       const customerProfile = await prisma.customerProfile.findUnique({
@@ -131,7 +131,7 @@ export default async function systemsRoutes(server: FastifyInstance) {
       const system = await systemService.updateSystem(
         systemId,
         customerProfile.id,
-        request.body
+        request.body as any
       );
 
       return reply.send(system);
@@ -145,7 +145,7 @@ export default async function systemsRoutes(server: FastifyInstance) {
       preHandler: server.authenticate,
     },
     async (request, reply) => {
-      const userId = request.user!.sub;
+      const userId = (request.user as any).sub;
       const { systemId } = request.params;
 
       const customerProfile = await prisma.customerProfile.findUnique({

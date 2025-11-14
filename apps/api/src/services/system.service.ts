@@ -117,7 +117,7 @@ export class SystemService {
         customerProfileId,
         openkjSystemId: Number(state.serial),
         name: input.name,
-        configuration: input.configuration || {},
+        configuration: (input.configuration || {}) as any,
       },
     });
 
