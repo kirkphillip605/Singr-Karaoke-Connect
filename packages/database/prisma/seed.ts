@@ -143,7 +143,7 @@ async function main() {
 
       await prisma.rolePermission.upsert({
         where: {
-          ux_role_permissions_role_permission: {
+          roleId_permissionId: {
             roleId: role.id,
             permissionId: permission.id,
           },
