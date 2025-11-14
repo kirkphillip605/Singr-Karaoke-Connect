@@ -13,9 +13,6 @@
 
 **Objective:** Allow anyone to discover karaoke venues with filtering and search.
 
-**Duration:** 2-3 days  
-**Team Size:** 1-2 developers
-
 **Tasks:**
 
 1. **Create venue schemas in `apps/api/src/routes/public/schemas.ts`:**
