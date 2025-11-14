@@ -13,9 +13,6 @@
 
 **Objective:** Allow customers to manage their karaoke systems.
 
-**Duration:** 2 days  
-**Team Size:** 1 developer
-
 **Tasks:**
 
 1. **Create system schemas in `apps/api/src/routes/customer/schemas.ts`:**
