@@ -1,13 +1,93 @@
 import { FastifyInstance } from 'fastify';
 import { prisma } from '@singr/database';
-import { NotFoundError, AuthorizationError } from '@singr/shared';
+import {
+  NotFoundError,
+  createVenueSchema,
+  updateVenueSchema,
+  parsePaginationParams,
+  createPaginationInfo,
+  type CreateVenueInput,
+  type UpdateVenueInput,
+} from '@singr/shared';
+import { VenueService } from '../services/venue.service.js';
+import { RequestService } from '../services/request.service.js';
 
 export default async function customerRoutes(server: FastifyInstance) {
-  // Get customer venues
+  const venueService = new VenueService();
+  const requestService = new RequestService();
+
+  // Get customer profile
+  server.get(
+    '/profile',
+    {
+      preHandler: server.authenticate,
+    },
+    async (request, reply) => {
+      const userId = request.user!.sub;
+
+      const profile = await prisma.customerProfile.findUnique({
+        where: { userId },
+        select: {
+          id: true,
+          legalBusinessName: true,
+          dbaName: true,
+          contactEmail: true,
+          contactPhone: true,
+          timezone: true,
+          createdAt: true,
+          updatedAt: true,
+        },
+      });
+
+      if (!profile) {
+        throw new NotFoundError('Customer profile');
+      }
+
+      return reply.send(profile);
+    }
+  );
+
+  // List venues
   server.get(
     '/venues',
     {
       preHandler: server.authenticate,
+    },
+    async (request, reply) => {
+      const userId = request.user!.sub;
+      const { limit, offset } = parsePaginationParams(
+        request.query as Record<string, unknown>
+      );
+
+      const customerProfile = await prisma.customerProfile.findUnique({
+        where: { userId },
+      });
+
+      if (!customerProfile) {
+        throw new NotFoundError('Customer profile');
+      }
+
+      const { venues, total } = await venueService.listVenues(
+        customerProfile.id,
+        limit,
+        offset
+      );
+
+      return reply.send({
+        venues,
+        pagination: createPaginationInfo(total, limit, offset, venues.length),
+      });
+    }
+  );
+
+  // Create venue
+  server.post<{ Body: CreateVenueInput }>(
+    '/venues',
+    {
+      preHandler: server.authenticate,
+      schema: {
+        body: createVenueSchema,
+      },
     },
     async (request, reply) => {
       const userId = request.user!.sub;
@@ -20,27 +100,18 @@ export default async function customerRoutes(server: FastifyInstance) {
         throw new NotFoundError('Customer profile');
       }
 
-      const venues = await prisma.venue.findMany({
-        where: { customerProfileId: customerProfile.id },
-        select: {
-          id: true,
-          name: true,
-          urlName: true,
-          city: true,
-          state: true,
-          acceptingRequests: true,
-          createdAt: true,
-        },
-        orderBy: { createdAt: 'desc' },
-      });
+      const venue = await venueService.createVenue(
+        customerProfile.id,
+        request.body
+      );
 
-      return reply.send({ venues });
+      return reply.code(201).send(venue);
     }
   );
 
-  // Get venue requests
+  // Get venue
   server.get<{ Params: { venueId: string } }>(
-    '/venues/:venueId/requests',
+    '/venues/:venueId',
     {
       preHandler: server.authenticate,
     },
@@ -56,46 +127,161 @@ export default async function customerRoutes(server: FastifyInstance) {
         throw new NotFoundError('Customer profile');
       }
 
-      // Verify venue ownership
-      const venue = await prisma.venue.findFirst({
-        where: {
-          id: venueId,
-          customerProfileId: customerProfile.id,
-        },
+      const venue = await venueService.getVenue(venueId, customerProfile.id);
+      return reply.send(venue);
+    }
+  );
+
+  // Update venue
+  server.put<{ Params: { venueId: string }; Body: UpdateVenueInput }>(
+    '/venues/:venueId',
+    {
+      preHandler: server.authenticate,
+      schema: {
+        body: updateVenueSchema,
+      },
+    },
+    async (request, reply) => {
+      const userId = request.user!.sub;
+      const { venueId } = request.params;
+
+      const customerProfile = await prisma.customerProfile.findUnique({
+        where: { userId },
       });
 
-      if (!venue) {
-        throw new AuthorizationError('Access denied to this venue');
+      if (!customerProfile) {
+        throw new NotFoundError('Customer profile');
       }
 
-      const requests = await prisma.request.findMany({
-        where: {
-          venueId,
-          processed: false,
-        },
-        select: {
-          id: true,
-          artist: true,
-          title: true,
-          keyChange: true,
-          notes: true,
-          requestedAt: true,
-          processed: true,
-          singerProfile: {
-            select: {
-              nickname: true,
-              user: {
-                select: {
-                  name: true,
-                },
-              },
-            },
-          },
-        },
-        orderBy: { requestedAt: 'asc' },
+      const venue = await venueService.updateVenue(
+        venueId,
+        customerProfile.id,
+        request.body
+      );
+
+      return reply.send(venue);
+    }
+  );
+
+  // Delete venue
+  server.delete<{ Params: { venueId: string } }>(
+    '/venues/:venueId',
+    {
+      preHandler: server.authenticate,
+    },
+    async (request, reply) => {
+      const userId = request.user!.sub;
+      const { venueId } = request.params;
+
+      const customerProfile = await prisma.customerProfile.findUnique({
+        where: { userId },
       });
 
-      return reply.send({ requests });
+      if (!customerProfile) {
+        throw new NotFoundError('Customer profile');
+      }
+
+      await venueService.deleteVenue(venueId, customerProfile.id);
+      return reply.code(204).send();
+    }
+  );
+
+  // Get venue requests
+  server.get<{ Params: { venueId: string } }>(
+    '/venues/:venueId/requests',
+    {
+      preHandler: server.authenticate,
+    },
+    async (request, reply) => {
+      const userId = request.user!.sub;
+      const { venueId } = request.params;
+      const { limit, offset } = parsePaginationParams(
+        request.query as Record<string, unknown>
+      );
+      const query = request.query as Record<string, unknown>;
+
+      const customerProfile = await prisma.customerProfile.findUnique({
+        where: { userId },
+      });
+
+      if (!customerProfile) {
+        throw new NotFoundError('Customer profile');
+      }
+
+      const { requests, total } = await requestService.listVenueRequests(
+        venueId,
+        customerProfile.id,
+        {
+          processed: query.processed ? query.processed === 'true' : undefined,
+          limit,
+          offset,
+        }
+      );
+
+      return reply.send({
+        requests,
+        pagination: createPaginationInfo(total, limit, offset, requests.length),
+      });
+    }
+  );
+
+  // Update request
+  server.patch<{
+    Params: { venueId: string; requestId: string };
+    Body: { processed?: boolean; notes?: string };
+  }>(
+    '/venues/:venueId/requests/:requestId',
+    {
+      preHandler: server.authenticate,
+    },
+    async (request, reply) => {
+      const userId = request.user!.sub;
+      const { venueId, requestId } = request.params;
+
+      const customerProfile = await prisma.customerProfile.findUnique({
+        where: { userId },
+      });
+
+      if (!customerProfile) {
+        throw new NotFoundError('Customer profile');
+      }
+
+      const updated = await requestService.updateRequest(
+        requestId,
+        venueId,
+        customerProfile.id,
+        request.body
+      );
+
+      return reply.send(updated);
+    }
+  );
+
+  // Delete request
+  server.delete<{ Params: { venueId: string; requestId: string } }>(
+    '/venues/:venueId/requests/:requestId',
+    {
+      preHandler: server.authenticate,
+    },
+    async (request, reply) => {
+      const userId = request.user!.sub;
+      const { venueId, requestId } = request.params;
+
+      const customerProfile = await prisma.customerProfile.findUnique({
+        where: { userId },
+      });
+
+      if (!customerProfile) {
+        throw new NotFoundError('Customer profile');
+      }
+
+      await requestService.deleteRequest(
+        requestId,
+        venueId,
+        customerProfile.id
+      );
+
+      return reply.code(204).send();
     }
   );
 }
