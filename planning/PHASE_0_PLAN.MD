@@ -13,9 +13,6 @@
 
 **Objective:** Establish project structure, tooling, and development environment.
 
-**Duration:** 2-3 days  
-**Team Size:** 1-2 developers
-
 **Tasks:**
 
 1. **Initialize monorepo structure:**
