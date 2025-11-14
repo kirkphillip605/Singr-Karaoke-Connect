@@ -1,0 +1,52 @@
+{
+  "name": "singr-backend",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Singr Central API Backend - Multi-phase karaoke management platform",
+  "author": "kirkphillip605",
+  "license": "UNLICENSED",
+  "engines": {
+    "node": ">=20.0.0",
+    "pnpm": ">=8.0.0"
+  },
+  "scripts": {
+    "dev": "pnpm --recursive --parallel dev",
+    "build": "pnpm --recursive build",
+    "test": "pnpm --recursive test",
+    "lint": "eslint . --ext .ts,.tsx --max-warnings 0",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "type-check": "pnpm --recursive type-check",
+    "clean": "pnpm --recursive clean && rm -rf node_modules",
+    "db:migrate:dev": "pnpm --filter @singr/database db:migrate:dev",
+    "db:migrate:deploy": "pnpm --filter @singr/database db:migrate:deploy",
+    "db:generate": "pnpm --filter @singr/database db:generate",
+    "db:seed": "pnpm --filter @singr/database db:seed",
+    "db:studio": "pnpm --filter @singr/database db:studio",
+    "api:dev": "pnpm --filter @singr/api dev",
+    "worker:dev": "pnpm --filter @singr/worker dev",
+    "prepare": "husky install"
+  },
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^6.21.0",
+    "@typescript-eslint/parser": "^6.21.0",
+    "eslint": "^8.57.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-import": "^2.29.1",
+    "husky": "^8.0.3",
+    "lint-staged": "^15.2.0",
+    "prettier": "^3.2.4",
+    "tsx": "^4.7.0",
+    "typescript": "^5.3.3",
+    "vitest": "^1.2.1"
+  },
+  "lint-staged": {
+    "*.{ts,tsx}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{json,md,yml,yaml}": [
+      "prettier --write"
+    ]
+  }
+}
