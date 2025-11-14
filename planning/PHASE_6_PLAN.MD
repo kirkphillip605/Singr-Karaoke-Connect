@@ -13,9 +13,6 @@
 
 **Objective:** Allow singers to view and update their profiles.
 
-**Duration:** 2 days  
-**Team Size:** 1 developer
-
 **Tasks:**
 
 1. **Create singer profile schemas in `apps/api/src/routes/singer/schemas.ts`:**
