@@ -13,9 +13,6 @@
 
 **Objective:** Initialize database with extensions and migrations infrastructure.
 
-**Duration:** 2-3 days  
-**Team Size:** 1-2 developers
-
 **Tasks:**
 
 1. **Create `packages/database/prisma/schema.prisma` with datasource:**
