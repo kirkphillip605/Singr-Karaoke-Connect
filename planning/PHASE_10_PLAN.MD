@@ -13,9 +13,6 @@
 
 **Objective:** Allow customers to view and manage incoming song requests in real-time.
 
-**Duration:** 3 days  
-**Team Size:** 1-2 developers
-
 **Tasks:**
 
 1. **Create request management schemas in `apps/api/src/routes/customer/schemas.ts`:**
