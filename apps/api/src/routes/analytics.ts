@@ -24,7 +24,7 @@ export default async function analyticsRoutes(server: FastifyInstance) {
       preHandler: server.authenticate,
     },
     async (request, reply) => {
-      const userId = request.user!.sub;
+      const userId = (request.user as any).sub;
       const query = request.query as Record<string, unknown>;
 
       const customerProfile = await prisma.customerProfile.findUnique({
@@ -52,7 +52,7 @@ export default async function analyticsRoutes(server: FastifyInstance) {
       preHandler: server.authenticate,
     },
     async (request, reply) => {
-      const userId = request.user!.sub;
+      const userId = (request.user as any).sub;
       const query = request.query as Record<string, unknown>;
 
       const customerProfile = await prisma.customerProfile.findUnique({
@@ -80,7 +80,7 @@ export default async function analyticsRoutes(server: FastifyInstance) {
       preHandler: server.authenticate,
     },
     async (request, reply) => {
-      const userId = request.user!.sub;
+      const userId = (request.user as any).sub;
 
       const customerProfile = await prisma.customerProfile.findUnique({
         where: { userId },
@@ -103,7 +103,7 @@ export default async function analyticsRoutes(server: FastifyInstance) {
       preHandler: server.authenticate,
     },
     async (request, reply) => {
-      const userId = request.user!.sub;
+      const userId = (request.user as any).sub;
       const query = request.query as Record<string, unknown>;
       const days = Math.min(
         parseInt(String(query.days || 30), 10),
@@ -134,7 +134,7 @@ export default async function analyticsRoutes(server: FastifyInstance) {
       preHandler: server.authenticate,
     },
     async (request, reply) => {
-      const userId = request.user!.sub;
+      const userId = (request.user as any).sub;
       const query = request.query as Record<string, unknown>;
       const limit = Math.min(parseInt(String(query.limit || 50), 10), 200);
 
@@ -164,7 +164,7 @@ export default async function analyticsRoutes(server: FastifyInstance) {
       preHandler: server.authenticate,
     },
     async (request, reply) => {
-      const userId = request.user!.sub;
+      const userId = (request.user as any).sub;
       const query = request.query as Record<string, unknown>;
       const limit = Math.min(parseInt(String(query.limit || 20), 10), 100);
 

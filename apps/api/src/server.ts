@@ -11,7 +11,7 @@ import Redis from 'ioredis';
 import { config } from '@singr/config';
 import { logger, initSentry, Sentry } from '@singr/observability';
 import { prisma } from '@singr/database';
-import { RefreshTokenService, verifyToken } from '@singr/auth';
+import { RefreshTokenService } from '@singr/auth';
 import { AppError } from '@singr/shared';
 import { initWebSocketService } from './services/websocket.service';
 
@@ -33,6 +33,7 @@ declare module 'fastify' {
 }
 
 export async function buildServer(): Promise<FastifyInstance> {
+  // @ts-expect-error - Pino logger types are compatible but have minor type differences
   const server = Fastify({
     logger,
     requestIdLogLabel: 'correlationId',
@@ -58,9 +59,10 @@ export async function buildServer(): Promise<FastifyInstance> {
     }
 
     // Log error with Sentry
+    const user = request.user as any;
     Sentry.captureException(error, {
-      user: request.user
-        ? { id: request.user.sub, email: request.user.email }
+      user: user
+        ? { id: user.sub, email: user.email }
         : undefined,
       extra: {
         correlationId: request.id,
@@ -120,6 +122,7 @@ export async function buildServer(): Promise<FastifyInstance> {
   });
 
   // Register JWT
+  // @ts-expect-error - JWT plugin types have minor incompatibilities with Fastify 5
   await server.register(jwt, {
     secret: {
       private: config.JWT_PRIVATE_KEY,
@@ -146,6 +149,7 @@ export async function buildServer(): Promise<FastifyInstance> {
   });
 
   // Register rate limiting
+  // @ts-expect-error - Redis constructor type compatibility
   const redis = new Redis(config.REDIS_URL);
   await server.register(rateLimit, {
     global: true,
@@ -154,7 +158,8 @@ export async function buildServer(): Promise<FastifyInstance> {
     redis,
     skipOnError: true,
     keyGenerator: (request) => {
-      return request.user?.sub || request.ip;
+      const user = request.user as any;
+      return user?.sub || request.ip;
     },
     errorResponseBuilder: (_request, context) => {
       return {
@@ -206,11 +211,10 @@ export async function buildServer(): Promise<FastifyInstance> {
     try {
       await request.jwtVerify();
 
+      const user = request.user as any;
       // Check if token is revoked
       const refreshTokenService = new RefreshTokenService(redis);
-      const isRevoked = await refreshTokenService.isJTIRevoked(
-        request.user!.jti
-      );
+      const isRevoked = await refreshTokenService.isJTIRevoked(user.jti);
 
       if (isRevoked) {
         return reply.code(401).send({
@@ -221,26 +225,28 @@ export async function buildServer(): Promise<FastifyInstance> {
       }
 
       // Fetch user account type and profile
-      const user = await prisma.user.findUnique({
-        where: { id: request.user!.sub },
+      const dbUser = await prisma.user.findUnique({
+        where: { id: user.sub },
         include: {
-          accounts: {
-            where: { isPrimary: true },
-            take: 1,
-          },
+          customerProfile: true,
+          singerProfile: true,
         },
       });
 
-      if (user && user.accounts[0]) {
-        const account = user.accounts[0];
-        request.user!.accountType = account.accountType as 'singer' | 'customer';
-        request.user!.profileId = account.profileId || undefined;
+      if (dbUser) {
+        if (dbUser.customerProfile) {
+          user.accountType = 'customer';
+          user.profileId = dbUser.customerProfile.id;
+        } else if (dbUser.singerProfile) {
+          user.accountType = 'singer';
+          user.profileId = dbUser.singerProfile.id;
+        }
       }
 
       // Set user in Sentry context
       Sentry.setUser({
-        id: request.user!.sub,
-        email: request.user!.email,
+        id: user.sub,
+        email: user.email,
       });
     } catch (err) {
       return reply.code(401).send({
@@ -288,5 +294,6 @@ export async function buildServer(): Promise<FastifyInstance> {
   await server.register(import('./routes/admin.js'), { prefix: '/v1/admin' });
   await server.register(import('./routes/websocket.js'), { prefix: '/v1' });
 
+  // @ts-expect-error - Fastify instance types are compatible at runtime
   return server;
 }

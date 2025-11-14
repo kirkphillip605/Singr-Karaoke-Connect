@@ -116,7 +116,7 @@ export default async function websocketRoutes(server: FastifyInstance) {
         description: 'Get WebSocket connection statistics',
       },
     },
-    async (request, reply) => {
+    async (_request, reply) => {
       const wsService = getWebSocketService();
       
       if (!wsService) {

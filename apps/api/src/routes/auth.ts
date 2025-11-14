@@ -243,7 +243,7 @@ export default async function authRoutes(server: FastifyInstance) {
       preHandler: server.authenticate,
     },
     async (request, reply) => {
-      const user = request.user!;
+      const user = request.user as any;
 
       // Revoke current token
       const refreshTokenService = new RefreshTokenService(server.redis);

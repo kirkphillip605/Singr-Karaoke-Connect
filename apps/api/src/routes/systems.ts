@@ -21,7 +21,7 @@ export default async function systemsRoutes(server: FastifyInstance) {
       preHandler: server.authenticate,
     },
     async (request, reply) => {
-      const userId = request.user!.sub;
+      const userId = (request.user as any).sub;
       const { limit, offset } = parsePaginationParams(
         request.query as Record<string, unknown>
       );
@@ -61,7 +61,7 @@ export default async function systemsRoutes(server: FastifyInstance) {
       },
     },
     async (request, reply) => {
-      const userId = request.user!.sub;
+      const userId = (request.user as any).sub;
 
       const customerProfile = await prisma.customerProfile.findUnique({
         where: { userId },
@@ -87,7 +87,7 @@ export default async function systemsRoutes(server: FastifyInstance) {
       preHandler: server.authenticate,
     },
     async (request, reply) => {
-      const userId = request.user!.sub;
+      const userId = (request.user as any).sub;
       const { systemId } = request.params;
 
       const customerProfile = await prisma.customerProfile.findUnique({
@@ -117,7 +117,7 @@ export default async function systemsRoutes(server: FastifyInstance) {
       },
     },
     async (request, reply) => {
-      const userId = request.user!.sub;
+      const userId = (request.user as any).sub;
       const { systemId } = request.params;
 
       const customerProfile = await prisma.customerProfile.findUnique({
@@ -145,7 +145,7 @@ export default async function systemsRoutes(server: FastifyInstance) {
       preHandler: server.authenticate,
     },
     async (request, reply) => {
-      const userId = request.user!.sub;
+      const userId = (request.user as any).sub;
       const { systemId } = request.params;
 
       const customerProfile = await prisma.customerProfile.findUnique({

@@ -16,7 +16,7 @@ export default async function adminRoutes(server: FastifyInstance) {
   const requireSuperAdmin = async (request: any, reply: any) => {
     await server.authenticate(request, reply);
 
-    const userId = request.user.sub;
+    const userId = ((request.user as any)?.sub);
 
     // Check if user has super_admin role
     const userRole = await prisma.userRole.findFirst({
