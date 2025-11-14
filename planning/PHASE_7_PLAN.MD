@@ -13,9 +13,6 @@
 
 **Objective:** Track and display singer's request history across all venues.
 
-**Duration:** 2 days  
-**Team Size:** 1 developer
-
 **Tasks:**
 
 1. **Create history schemas in `apps/api/src/routes/singer/schemas.ts`:**
