@@ -23,7 +23,10 @@ declare module 'fastify' {
       sub: string;
       email: string;
       jti: string;
+      accountType?: 'singer' | 'customer';
+      profileId?: string;
     };
+    rawBody?: string | Buffer;
   }
 }
 
@@ -207,6 +210,23 @@ export async function buildServer(): Promise<FastifyInstance> {
         });
       }
 
+      // Fetch user account type and profile
+      const user = await prisma.user.findUnique({
+        where: { id: request.user!.sub },
+        include: {
+          accounts: {
+            where: { isPrimary: true },
+            take: 1,
+          },
+        },
+      });
+
+      if (user && user.accounts[0]) {
+        const account = user.accounts[0];
+        request.user!.accountType = account.accountType as 'singer' | 'customer';
+        request.user!.profileId = account.profileId || undefined;
+      }
+
       // Set user in Sentry context
       Sentry.setUser({
         id: request.user!.sub,
@@ -250,6 +270,7 @@ export async function buildServer(): Promise<FastifyInstance> {
   await server.register(import('./routes/apikeys.js'), { prefix: '/v1/customer' });
   await server.register(import('./routes/organization.js'), { prefix: '/v1/customer' });
   await server.register(import('./routes/analytics.js'), { prefix: '/v1/customer' });
+  await server.register(import('./routes/billing.js'), { prefix: '/v1/customer' });
   await server.register(import('./routes/openkj.js'), { prefix: '/v1/openkj' });
   await server.register(import('./routes/admin.js'), { prefix: '/v1/admin' });
 

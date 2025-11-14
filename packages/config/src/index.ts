@@ -42,6 +42,9 @@ export const config = envsafe({
   STRIPE_SECRET_KEY: str({ devDefault: '', allowEmpty: true }),
   STRIPE_PUBLISHABLE_KEY: str({ devDefault: '', allowEmpty: true }),
   STRIPE_WEBHOOK_SECRET: str({ devDefault: '', allowEmpty: true }),
+  STRIPE_PRICE_STARTER: str({ devDefault: 'price_starter', allowEmpty: true }),
+  STRIPE_PRICE_PROFESSIONAL: str({ devDefault: 'price_professional', allowEmpty: true }),
+  STRIPE_PRICE_ENTERPRISE: str({ devDefault: 'price_enterprise', allowEmpty: true }),
 
   // Mailjet
   MAILJET_API_KEY: str({ devDefault: '', allowEmpty: true }),
