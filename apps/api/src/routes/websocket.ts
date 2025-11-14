@@ -1,6 +1,6 @@
 import { FastifyInstance, FastifyRequest } from 'fastify';
 import { logger } from '@singr/observability';
-import { getWebSocketService } from '../services/websocket.service';
+import { getWebSocketService } from '../services/websocket.service.js';
 import { verifyToken } from '@singr/auth';
 
 /**

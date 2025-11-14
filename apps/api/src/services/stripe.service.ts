@@ -236,7 +236,7 @@ export class StripeService {
       throw new Error('Customer has been deleted');
     }
 
-    const customerProfileId = customer.metadata?.customerProfileId;
+    const customerProfileId = (customer as any).metadata?.customerProfileId;
     if (!customerProfileId) {
       throw new Error('Customer profile ID not found in metadata');
     }

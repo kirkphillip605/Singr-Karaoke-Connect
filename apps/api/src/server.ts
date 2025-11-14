@@ -1,4 +1,5 @@
-import Fastify, { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
+import Fastify, { FastifyInstance } from 'fastify';
+import type { FastifyRequest, FastifyReply } from 'fastify';
 import cors from '@fastify/cors';
 import helmet from '@fastify/helmet';
 import jwt from '@fastify/jwt';
@@ -13,29 +14,20 @@ import { logger, initSentry, Sentry } from '@singr/observability';
 import { prisma } from '@singr/database';
 import { RefreshTokenService } from '@singr/auth';
 import { AppError } from '@singr/shared';
-import { initWebSocketService } from './services/websocket.service';
+import { initWebSocketService } from './services/websocket.service.js';
 
 // Extend Fastify types
 declare module 'fastify' {
   interface FastifyInstance {
     authenticate: (request: FastifyRequest, reply: FastifyReply) => Promise<void>;
-  }
-  interface FastifyRequest {
-    user?: {
-      sub: string;
-      email: string;
-      jti: string;
-      accountType?: 'singer' | 'customer';
-      profileId?: string;
-    };
-    rawBody?: string | Buffer;
+    redis: any;
+    prisma: any;
   }
 }
 
 export async function buildServer(): Promise<FastifyInstance> {
-  // @ts-expect-error - Pino logger types are compatible but have minor type differences
   const server = Fastify({
-    logger,
+    logger: logger as any,
     requestIdLogLabel: 'correlationId',
     disableRequestLogging: false,
     trustProxy: true,
@@ -248,6 +240,8 @@ export async function buildServer(): Promise<FastifyInstance> {
         id: user.sub,
         email: user.email,
       });
+      
+      return Promise.resolve();
     } catch (err) {
       return reply.code(401).send({
         type: 'authentication_failed',
@@ -294,6 +288,5 @@ export async function buildServer(): Promise<FastifyInstance> {
   await server.register(import('./routes/admin.js'), { prefix: '/v1/admin' });
   await server.register(import('./routes/websocket.js'), { prefix: '/v1' });
 
-  // @ts-expect-error - Fastify instance types are compatible at runtime
   return server;
 }

@@ -98,6 +98,9 @@ importers:
       stripe:
         specifier: ^14.9.0
         version: 14.25.0
+      zod:
+        specifier: ^3.22.4
+        version: 3.25.76
     devDependencies:
       '@types/jest':
         specifier: ^29.5.0

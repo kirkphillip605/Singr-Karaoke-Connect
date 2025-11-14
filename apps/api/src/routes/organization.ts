@@ -135,7 +135,7 @@ export default async function organizationRoutes(server: FastifyInstance) {
       const updated = await organizationService.updateUserRole(
         customerProfile.id,
         organizationUserId,
-        request.body
+        request.body as any
       );
 
       return reply.send(updated);

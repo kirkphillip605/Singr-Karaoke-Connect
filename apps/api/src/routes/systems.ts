@@ -46,7 +46,7 @@ export default async function systemsRoutes(server: FastifyInstance) {
 
       return reply.send({
         systems,
-        pagination: createPaginationInfo(total, limit, offset, systems.length),
+        pagination: createPaginationInfo(total, limit || 10, offset || 0, systems.length),
       });
     }
   );
@@ -73,7 +73,7 @@ export default async function systemsRoutes(server: FastifyInstance) {
 
       const system = await systemService.createSystem(
         customerProfile.id,
-        request.body
+        request.body as any
       );
 
       return reply.code(201).send(system);
@@ -131,7 +131,7 @@ export default async function systemsRoutes(server: FastifyInstance) {
       const system = await systemService.updateSystem(
         systemId,
         customerProfile.id,
-        request.body
+        request.body as any
       );
 
       return reply.send(system);

@@ -15,6 +15,7 @@ export interface WebSocketMessage {
 export class WebSocketService {
   private connections: Map<string, Set<any>> = new Map();
   // Server is available for future use if needed
+  // Server is available for future WebSocket-related operations
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   constructor(private _server: FastifyInstance) {}
 

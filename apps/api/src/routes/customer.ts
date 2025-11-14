@@ -75,7 +75,7 @@ export default async function customerRoutes(server: FastifyInstance) {
 
       return reply.send({
         venues,
-        pagination: createPaginationInfo(total, limit, offset, venues.length),
+        pagination: createPaginationInfo(total, limit || 10, offset || 0, venues.length),
       });
     }
   );
@@ -220,7 +220,7 @@ export default async function customerRoutes(server: FastifyInstance) {
 
       return reply.send({
         requests,
-        pagination: createPaginationInfo(total, limit, offset, requests.length),
+        pagination: createPaginationInfo(total, limit || 10, offset || 0, requests.length),
       });
     }
   );

@@ -45,7 +45,7 @@ export default async function songdbRoutes(server: FastifyInstance) {
 
       return reply.send({
         songs,
-        pagination: createPaginationInfo(total, limit, offset, songs.length),
+        pagination: createPaginationInfo(total, limit || 10, offset || 0, songs.length),
       });
     }
   );

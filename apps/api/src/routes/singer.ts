@@ -57,7 +57,7 @@ export default async function singerRoutes(server: FastifyInstance) {
         data: {
           nickname: body.nickname as string | undefined,
           avatarUrl: body.avatarUrl as string | undefined,
-          preferences: body.preferences as Record<string, unknown> | undefined,
+          preferences: body.preferences as any,
         },
         select: {
           id: true,
@@ -113,7 +113,7 @@ export default async function singerRoutes(server: FastifyInstance) {
 
       return reply.send({
         songs: favorites,
-        pagination: createPaginationInfo(total, limit, offset, favorites.length),
+        pagination: createPaginationInfo(total, limit || 10, offset || 0, favorites.length),
       });
     }
   );
@@ -346,7 +346,7 @@ export default async function singerRoutes(server: FastifyInstance) {
 
       return reply.send({
         history,
-        pagination: createPaginationInfo(total, limit, offset, history.length),
+        pagination: createPaginationInfo(total, limit || 10, offset || 0, history.length),
       });
     }
   );

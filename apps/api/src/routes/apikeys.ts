@@ -49,7 +49,7 @@ export default async function apikeysRoutes(server: FastifyInstance) {
 
       return reply.send({
         apiKeys,
-        pagination: createPaginationInfo(total, limit, offset, apiKeys.length),
+        pagination: createPaginationInfo(total, limit || 10, offset || 0, apiKeys.length),
       });
     }
   );
