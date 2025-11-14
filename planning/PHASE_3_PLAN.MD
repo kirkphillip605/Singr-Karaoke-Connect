@@ -13,9 +13,6 @@
 
 **Objective:** Bootstrap Fastify with core plugins and middleware.
 
-**Duration:** 2-3 days  
-**Team Size:** 1-2 developers
-
 **Tasks:**
 
 1. **Create `apps/api/src/server.ts`:**
