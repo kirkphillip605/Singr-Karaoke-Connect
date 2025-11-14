@@ -13,9 +13,6 @@
 
 **Objective:** Implement `/v1/auth/register` endpoints for customer and singer registration with email verification.
 
-**Duration:** 2-3 days  
-**Team Size:** 1 developer
-
 **Tasks:**
 
 1. **Create registration schemas in `apps/api/src/routes/auth/schemas.ts`:**
