@@ -249,7 +249,9 @@ export async function buildServer(): Promise<FastifyInstance> {
   await server.register(import('./routes/songdb.js'), { prefix: '/v1/customer' });
   await server.register(import('./routes/apikeys.js'), { prefix: '/v1/customer' });
   await server.register(import('./routes/organization.js'), { prefix: '/v1/customer' });
+  await server.register(import('./routes/analytics.js'), { prefix: '/v1/customer' });
   await server.register(import('./routes/openkj.js'), { prefix: '/v1/openkj' });
+  await server.register(import('./routes/admin.js'), { prefix: '/v1/admin' });
 
   return server;
 }
