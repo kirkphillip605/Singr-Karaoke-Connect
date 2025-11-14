@@ -7,7 +7,7 @@ import { verifyToken } from '@singr/auth';
  * WebSocket routes for real-time updates
  * Clients connect to /ws?venueId=xxx&token=jwt
  */
-export async function websocketRoutes(server: FastifyInstance) {
+export default async function websocketRoutes(server: FastifyInstance) {
   server.get(
     '/ws',
     { websocket: true },

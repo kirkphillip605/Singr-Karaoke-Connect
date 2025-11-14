@@ -23,9 +23,10 @@ export interface TokenPair {
 
 function parseExpiry(expiry: string): number {
   const matches = expiry.match(/^(\d+)([smhd])$/);
-  if (!matches) throw new Error(`Invalid expiry format: ${expiry}`);
+  if (!matches || !matches[1] || !matches[2]) throw new Error(`Invalid expiry format: ${expiry}`);
 
-  const [, value, unit] = matches;
+  const value = matches[1];
+  const unit = matches[2];
   const num = parseInt(value, 10);
 
   switch (unit) {
@@ -49,12 +50,12 @@ export function generateAccessToken(userId: string, email: string): string {
     jti: uuidv4(),
   };
 
-  return jwt.sign(payload, config.JWT_PRIVATE_KEY, {
+  return jwt.sign(payload, config.JWT_PRIVATE_KEY as any, {
     algorithm: 'ES256',
     expiresIn: config.JWT_ACCESS_EXPIRY,
     issuer: config.JWT_ISSUER,
     audience: config.JWT_AUDIENCE,
-  });
+  } as any);
 }
 
 export function generateRefreshToken(userId: string, email: string): string {
@@ -64,12 +65,12 @@ export function generateRefreshToken(userId: string, email: string): string {
     jti: uuidv4(),
   };
 
-  return jwt.sign(payload, config.JWT_PRIVATE_KEY, {
+  return jwt.sign(payload, config.JWT_PRIVATE_KEY as any, {
     algorithm: 'ES256',
     expiresIn: config.JWT_REFRESH_EXPIRY,
     issuer: config.JWT_ISSUER,
     audience: config.JWT_AUDIENCE,
-  });
+  } as any);
 }
 
 export function generateTokenPair(userId: string, email: string): TokenPair {

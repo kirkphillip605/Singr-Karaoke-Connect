@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, Prisma } from '@prisma/client';
 import { createLogger } from '@singr/observability';
 
 const logger = createLogger('prisma');
@@ -21,7 +21,7 @@ if (process.env.NODE_ENV !== 'production') {
 
 // Log queries in development
 if (process.env.NODE_ENV === 'development') {
-  prisma.$on('query', (e) => {
+  (prisma as any).$on('query', (e: Prisma.QueryEvent) => {
     logger.debug(
       {
         duration: e.duration,
@@ -32,7 +32,7 @@ if (process.env.NODE_ENV === 'development') {
   });
 }
 
-prisma.$on('error', (e) => {
+(prisma as any).$on('error', (e: { message: string; target: string }) => {
   logger.error({ error: e }, 'Database error');
 });
 

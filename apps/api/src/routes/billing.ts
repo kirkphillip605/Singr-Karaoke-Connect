@@ -16,7 +16,7 @@ const createPortalSchema = z.object({
   returnUrl: z.string().url(),
 });
 
-export async function billingRoutes(server: FastifyInstance) {
+export default async function billingRoutes(server: FastifyInstance) {
   // Create checkout session
   server.post(
     '/billing/checkout',

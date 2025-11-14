@@ -1,5 +1,5 @@
 import pino from 'pino';
-import { config, isDevelopment } from '@singr/config';
+import { isDevelopment } from '@singr/config';
 
 const baseOptions: pino.LoggerOptions = {
   level: isDevelopment ? 'debug' : 'info',

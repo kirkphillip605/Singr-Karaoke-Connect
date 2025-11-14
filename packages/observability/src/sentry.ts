@@ -16,7 +16,7 @@ export function initSentry() {
       new Sentry.Integrations.OnUncaughtException(),
       new Sentry.Integrations.OnUnhandledRejection(),
     ],
-    beforeSend(event, hint) {
+    beforeSend(event) {
       // Redact sensitive data
       if (event.request) {
         delete event.request.cookies;
