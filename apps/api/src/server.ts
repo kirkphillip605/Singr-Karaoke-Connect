@@ -5,6 +5,7 @@ import jwt from '@fastify/jwt';
 import rateLimit from '@fastify/rate-limit';
 import swagger from '@fastify/swagger';
 import swaggerUi from '@fastify/swagger-ui';
+import websocket from '@fastify/websocket';
 import Redis from 'ioredis';
 
 import { config } from '@singr/config';
@@ -12,6 +13,7 @@ import { logger, initSentry, Sentry } from '@singr/observability';
 import { prisma } from '@singr/database';
 import { RefreshTokenService, verifyToken } from '@singr/auth';
 import { AppError } from '@singr/shared';
+import { initWebSocketService } from './services/websocket.service';
 
 // Extend Fastify types
 declare module 'fastify' {
@@ -135,6 +137,14 @@ export async function buildServer(): Promise<FastifyInstance> {
     },
   });
 
+  // Register WebSocket support
+  await server.register(websocket, {
+    options: {
+      maxPayload: 1048576, // 1MB
+      clientTracking: true,
+    },
+  });
+
   // Register rate limiting
   const redis = new Redis(config.REDIS_URL);
   await server.register(rateLimit, {
@@ -241,6 +251,9 @@ export async function buildServer(): Promise<FastifyInstance> {
     }
   });
 
+  // Initialize WebSocket service
+  initWebSocketService(server);
+
   // Health check endpoints
   server.get('/health', async () => {
     return { status: 'ok', timestamp: new Date().toISOString() };
@@ -273,6 +286,7 @@ export async function buildServer(): Promise<FastifyInstance> {
   await server.register(import('./routes/billing.js'), { prefix: '/v1/customer' });
   await server.register(import('./routes/openkj.js'), { prefix: '/v1/openkj' });
   await server.register(import('./routes/admin.js'), { prefix: '/v1/admin' });
+  await server.register(import('./routes/websocket.js'), { prefix: '/v1' });
 
   return server;
 }
