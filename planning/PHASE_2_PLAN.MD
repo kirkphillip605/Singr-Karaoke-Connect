@@ -13,9 +13,6 @@
 
 **Objective:** Secure password handling with Argon2id.
 
-**Duration:** 2 days  
-**Team Size:** 1 developer
-
 **Tasks:**
 
 1. **Create `packages/auth/src/password.ts`:**
